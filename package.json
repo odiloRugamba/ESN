@@ -1,0 +1,23 @@
+{
+  "name": "S20-ESN-RW2",
+  "version": "1.0.0",
+  "description": "- Installation instructions",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "start": "cd server && npm install && node server.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cmusv-fse/S20-ESN-RW2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/cmusv-fse/S20-ESN-RW2/issues"
+  },
+  "homepage": "https://github.com/cmusv-fse/S20-ESN-RW2#readme"
+}
