@@ -1,0 +1,57 @@
+const mongoose = require('mongoose');
+
+const dbHandler = require('../db-handler');
+//const server = require("../../server")
+//const io = require("socket.io")(server);
+
+const Chat = require("../../models/Chat");
+const ChatRepo = require("../../repo/ChatRepo");
+
+
+beforeAll(async () => await dbHandler.connect());
+
+afterEach(async () => await dbHandler.clearDatabase());
+
+afterAll(async () => await dbHandler.closeDatabase());
+
+
+describe("Test the UserRepo", () => {
+
+    
+    it("Test ChatRepo.savePublicChat() function", async done => {
+
+        // create a message
+        const msg = { sender: "john5", text: "Hello word", created_at: "2020-02-27T07:14:14.713Z" };
+
+        await ChatRepo.savePublicChat(null, msg);
+
+        // attempt to get the message from the database
+        const chat = await Chat.findOne({ sender: "john5", text: "Hello word" });
+
+        expect(chat.text).toEqual("Hello word");
+
+        done();
+    });
+    
+
+    /*it("Test ChatRepo.listPublicMessages() function", async done => {
+
+        // create a couple of messages and persist them in the database
+        const chat1 = new Chat({ sender: "doe1", text: "Hello world", messageType: "public" });
+        await chat1.save()
+
+        const chat2 = new Chat({ sender: "doe2", text: "Hello world", messageType: "public" });
+        await chat2.save()
+
+        const chat3 = new Chat({ sender: "doe3", text: "Hello world", messageType: "public" });
+        await chat3.save()
+
+        // query the database to see the content
+        const chats = await ChatRepo.listPublicMessages();
+
+        expect(chats.length).toEqual(3);
+        done();
+    });*/
+
+
+})

@@ -1,0 +1,51 @@
+{
+  "name": "server",
+  "version": "1.0.0",
+  "description": "Emergency app by the FSE team",
+  "main": "index.js",
+  "scripts": {
+    "start": "nodemon server.js",
+    "test": "jest --coverage --runInBand --detectOpenHandles",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^3.0.8",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.18.1",
+    "connect-history-api-fallback": "^1.6.0",
+    "cors": "^2.8.4",
+    "express": "^4.15.4",
+    "has-values": "^2.0.1",
+    "jest": "^25.1.0",
+    "jsonwebtoken": "^8.5.1",
+    "mongodb-memory-server": "^6.3.2",
+    "mongoose": "^5.9.1",
+    "morgan": "^1.8.2",
+    "nodemon": "^1.19.4",
+    "passport": "^0.4.1",
+    "passport-jwt": "^4.0.0",
+    "socket.io": "^2.3.0",
+    "swagger-jsdoc": "^3.5.0",
+    "swagger-ui-express": "^4.1.4"
+  },
+  "devDependencies": {
+    "supertest": "^4.0.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "coveragePathIgnorePatterns": [
+      "/node_modules/"
+    ],
+    "collectCoverage": true,
+    "coverageReporters": [
+      "text",
+      "text-summary",
+      "html",
+      "lcov",
+      "clover"
+    ]
+  }
+}

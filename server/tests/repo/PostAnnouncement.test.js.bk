@@ -1,0 +1,39 @@
+const mongoose = require('mongoose');
+
+const dbHandler = require('../db-handler');
+//const server = require("../../server")
+//const io = require("socket.io")(server);
+
+const Announcement = require("../../models/Announcement");
+const User = require("../../models/User");
+const AnnouncementRepo = require("../../repo/AnnouncementRepo");
+
+
+beforeAll(async () => await dbHandler.connect());
+
+afterEach(async () => await dbHandler.clearDatabase());
+
+afterAll(async () => await dbHandler.closeDatabase());
+
+
+describe("Test the AnnouncementRepo", () => {
+
+    
+    it("Test AnnouncementRepo.saveAnnouncement() function", async done => {
+
+        const user = await User({ username: 'john5', password: "johndoe", current_status: { text: 'help' } });
+        // save the user
+        await user.save();
+
+        const announ = { publisher: "john5", text: "New pandemic coming"};
+
+        await AnnouncementRepo.saveAnnouncement(announ);
+
+        const announTest = await Announcement.findOne({ publisher: "john5", text: "New pandemic coming" });
+
+        expect(announTest.text).toEqual("New pandemic coming");
+
+        done();
+    });
+    
+})
