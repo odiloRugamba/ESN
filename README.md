@@ -5,7 +5,7 @@
 Update front-end/src/services/API.js to the URL of the API
 update server/mongodbConnModule.js to the database URL
 
-cd client 
+cd front-end 
 npm install 
 npm run build 
 
