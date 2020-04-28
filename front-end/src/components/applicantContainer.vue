@@ -13,8 +13,8 @@
                     <v-list-item-title v-if="toBeProcessed"><v-btn small @click="accept">Accept</v-btn></v-list-item-title>
                     <v-list-item-title v-if="toBeProcessed"><v-btn small @click="decline">Decline</v-btn></v-list-item-title>
                     <v-list-item-title v-if="!toBeProcessed">
-                        <v-text v-if="status"> #Approved</v-text>
-                        <v-text v-else> #Declined</v-text>
+                        <span v-if="status"> #Approved</span>
+                        <span v-else> #Declined</span>
                     </v-list-item-title>
                 </v-list-item-content>
                 

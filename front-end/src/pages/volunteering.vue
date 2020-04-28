@@ -7,10 +7,10 @@
       :isCoordinator="isCoordinator"
       :loading="loading"
     />
-    <v-text v-else
+    <p v-else
     >
       No volunteering calls avilable
-    </v-text>
+    </p>
      <v-row v-if="isCoordinator">
       <v-col cols="12">
           <div class="my-2">
@@ -39,7 +39,7 @@ export default {
     return {
       calls: [],
       isCoordinator: '',
-      role: this.$session.get('role'),
+      role: this.$session.get('user').role,
       loading: false,
     };
   },

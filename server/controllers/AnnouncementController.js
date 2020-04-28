@@ -44,6 +44,6 @@ exports.send_announcement = async (req, res) => {
  */
 
 exports.getLatestAnnouncements = async (req, res) => {
-  const ann = await AnnouncementRepo.getAnnouncement();
+  const ann = await AnnouncementRepo.getAnnouncements();
   res.json(ann);
 };

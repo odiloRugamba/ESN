@@ -1,61 +1,63 @@
 <template>
-  <div>
-    <span class="float-left pl-3">Welcome to [Made Changes!] the Emmergency Management App</span>
+  <v-container fluid>
+    <p class="headline text-center">Welcome to the Emmergency Social Network Application</p>
 
-    <span class="float-right pr-3">
-      <router-link to="/chat">Proceed to user directory and chat</router-link>
-    </span>
-    <hr />
-    <div>
-      <div>
-        <strong>Below is the meaning of different statuses that you may share</strong>
-      </div>
-      <hr />
-        <div id="okay">
-            <img src="../assets/okay_icon.png" width="100">
-            I am okay. I do not need any help 
-        </div> 
-        <div id="help">
-            <img src="../assets/help-icon.png" width="100">
-            I need help, but this is not a life threatening emergency.
-        </div> 
-        <div id="help">
-            <img src="../assets/emergency-icon.png" width="100">
-            I need help now, as this is a life threatening emergency!
-        </div>
-    </div>
-    <div>
-</div>
-  </div>
+    <p class="title text-center">Below is the meaning of different statuses that you may share</p>
+    <v-row no-gutters>
+      <v-col cols="12">
+        <v-row no-gutters>
+          <v-col cols="3" md="1">
+            <v-img src="../assets/okay_icon.png" contain/>
+          </v-col>
+          <v-col 
+            cols="9" 
+            md="10"
+            offset="0" 
+            offset-md="1" 
+            align-self="center"
+          >
+            <p>I am okay. I do not need any help.</p>
+          </v-col>
+        </v-row>
+      </v-col>
+      <v-col cols="12">
+        <v-row no-gutters>
+          <v-col cols="3" md="1">
+            <v-img src="../assets/help-icon.png" contain/>
+          </v-col>
+          <v-col 
+            cols="9" 
+            md="10"
+            offset="0" 
+            offset-md="1" 
+            align-self="center"
+          >
+            <p>I need help, but this is not a life threatening emergency.</p>
+          </v-col>
+        </v-row>
+      </v-col>
+      <v-col cols="12">
+        <v-row no-gutters>
+          <v-col cols="3" md="1">
+            <v-img src="../assets/emergency-icon.png" contain/>
+          </v-col>
+          <v-col 
+            cols="9" 
+            md="10"
+            offset="0" 
+            offset-md="1" 
+            align-self="center"
+          >
+            <p>I need help now, as this is a life threatening emergency!</p>
+          </v-col>
+        </v-row>
+      </v-col>
+    </v-row>
+  </v-container>
 </template>
 
 <script>
-import Api from "@/services/Api";
 export default {
-  computed: {
-    getuser() {
-      return this.$store.state.users;
-    }
-  },
-  methods: {
-    async updateStatus() {
-     var users = this.getuser;
-     console.log(username);
-     if(isLoggedIn)
-     {
-       console.log("Logged In")
-     }
-      this.errorMsg = "";
-      
-      var founduser;
-    },
-    isLoggedIn() {
-      var user = this.getuser;
-      if (user.username.length > 0) {
-        return true;
-      }
-      return false;
-    }
-  }
+  name: 'welcome'
 };
 </script>

@@ -1,15 +1,5 @@
 const ChatRepo = require("../repo/ChatRepo");
 
-
-exports.user_joined = async (socket, name) => {
-  console.log("user-joined called!");
-  const msg = await ChatRepo.listPublicMessages();
-  console.log(msg);
-  socket.emit("pre-messages", msg);
-  socket.broadcast.emit("new-user", `${name} joined!`);
-};
-
-
 /**
  * @swagger
  * /messages/public:
@@ -41,7 +31,6 @@ exports.user_joined = async (socket, name) => {
  *        description: A successful response
  */
 exports.send_message = async (req, res) => {
-  // TO-DO verify logged-in user is message sender
   // persist the message in the database
   const message = req.body;
   const savedMessage = await ChatRepo.savePublicChat(message);
@@ -99,14 +88,8 @@ exports.send_privmessage = async (req, res) => {
  *         description: users
  */
 exports.get_messages = async (req, res) => {
-  // persist the message in the database
   const msgs = await ChatRepo.listPublicMessages();
   res.json(msgs);
-};
-
-exports.user_left = async socket => {
-  console.log("user left");
-  socket.broadcast.emit("user-left");
 };
 
 /**
@@ -134,14 +117,8 @@ exports.user_left = async socket => {
 exports.getprivatemsgs = async (req, res) => {
   const username1 = req.params['username1'];
   const username2 = req.params['username2'];
-  console.log(username1);
   const msgs = await ChatRepo.getLatestMessages(username1, username2);
   return res.json(msgs);
 }
 
 
-
-exports.getallprivatemsgs = async (req, res) => {
-  const msgs = await ChatRepo.getAllLatestMessages();
-  res.json({ allmsgs: msgs });
-}

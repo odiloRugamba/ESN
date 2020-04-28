@@ -18,13 +18,19 @@ class AnnouncementRepo {
     }
 
 
-    async getAnnouncement() {
-        return await Announcement.find().sort( { created_at: -1 } )
+    async getAnnouncements() {
+        const activeUsers = await UserRepo.getActiveUsername();
+        return await Announcement.find({
+            publisher: {
+                "$in": activeUsers
+            }
+        }).sort( { created_at: -1 } )
     }
 
     async searchAnnouncementsByText(query) {
         return await Announcement
             .find({ "text": { "$regex": query, "$options": "i" } });
+
     }
 
 }
@@ -33,4 +39,4 @@ class AnnouncementRepo {
 const announcementRepo = new AnnouncementRepo();
 Object.freeze(announcementRepo);
 
-module.exports = announcementRepo
+module.exports = announcementRepo;

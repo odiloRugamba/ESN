@@ -3,7 +3,7 @@
 
 - Installation instructions 
 
-cd front-end 
+cd client 
 npm install 
 npm run build 
 
@@ -13,4 +13,4 @@ npm install
 npm run start 
 
 
-Access the application at localhost:8080
+Access the application at localhost:8081

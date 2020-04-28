@@ -1,91 +1,111 @@
-const mongoose = require('mongoose');
-const testDatabase = require("../../config/main").test_db;
+const dbHandler = require('../db-handler');
 
-// const app = require('../../server');
 const request = require('supertest'); // Endpoint testing package.
+
+const UserRepo = require("../../repo/UserRepo");
 
 const Chat = require("../../models/Chat");
 
-it('Testing to see if Jest works', () => {
-    expect(1).toBe(1);
-});
+const app = require('../../app')
 
+beforeAll(async () => await dbHandler.connect());
 
-// Tests setup.
-beforeAll(async () => {
+afterEach(async () => await dbHandler.clearDatabase());
 
-    jest.setTimeout(30000);
+afterAll(async () => await dbHandler.closeDatabase());
 
-    // Connecting to the database.
-    await mongoose.connect(testDatabase, {
-        useNewUrlParser: true,
-        useUnifiedTopology: true,
-        poolSize: 10
-    });
-});
+const username1 = "MikeSmith";
+const username2 = "johnx";
+let token = null;
 
-
-// Before each test.
+// Add a user and obtain a token
 beforeEach(async () => {
+    await UserRepo.saveUser(username1, "password");
+    await UserRepo.saveUser(username2, "password");
+    const response = await request(app)
+        .post('/login')
+        .send({
+            username: username1,
+            password: "password"
+        });
+    expect(response.statusCode).toBe(200);
+    expect(response.body).toHaveProperty("token");
+    token = response.body.token;
+});
 
-    // Creating new chats, and adding them to the database.
-    const chat1 = new Chat({ sender: "MarkDan", text: "Hello there" });
-    await chat1.save();
+describe("Verifying public chats", () => {
 
-    const chat2 = new Chat({ sender: "JimBrian", text: "How are you doing?" });
-    await chat2.save();
+    // add some chats
+    beforeEach(async () => {
+        await Chat({sender: username1, text: 'hi', messageType: 'public'}).save();
+        await Chat({sender: username2, text: 'hello', messageType: 'public'}).save();
+        await Chat({sender: username1, text: 'how are you?', messageType: 'public'}).save();
+    });
 
-    const chat3 = new Chat({ sender: "PeterClever", text: "Not so great right now" });
-    await chat3.save();
+    it("Verify retrieving chats, it should respond with an array of messages", done => {
+        request(app)
+            .get("/messages/public")
+            .set('Authorization', 'Bearer '+token)
+            .end((err, response) => {
+                expect(err).toBe(null);
+                expect(response.statusCode).toBe(200);
+                expect(response.body.length).toBe(3);
+                done();
+            });
+    });
+
+    it("Verify send a chat, it should respond with created", done => {
+        request(app)
+            .post("/messages/public")
+            .set('Authorization', 'Bearer '+token)
+            .send({
+                sender: username1,
+                text: 'message'
+            })
+            .end((err, response) => {
+                expect(err).toBe(null);
+                expect(response.statusCode).toBe(201);
+                done();
+            });
+    });
 
 });
 
+describe("Verifying private chats", () => {
 
-// After each test.
-afterEach(async () => {
-    // Removing the users.
-    await Chat.remove({});
+    // add some chats
+    beforeEach(async () => {
+        await Chat({sender: username1, receiver: username2, text: 'hi', messageType: 'private'}).save();
+        await Chat({sender: username2, receiver: username1, text: 'hello', messageType: 'private'}).save();
+        await Chat({sender: username1, receiver: username2, text: 'how is it?', messageType: 'private'}).save();
+    });
+
+    it("Verify retrieving chats, it should respond with an array of messages", done => {
+        request(app)
+            .get("/messages/private/"+username1+"/"+username2)
+            .set('Authorization', 'Bearer '+token)
+            .end((err, response) => {
+                expect(err).toBe(null);
+                expect(response.statusCode).toBe(200);
+                expect(response.body.length).toBe(3);
+                done();
+            });
+    });
+
+    it("Verify send a chat, it should respond with created", done => {
+        request(app)
+            .post("/messages/private")
+            .set('Authorization', 'Bearer '+token)
+            .send({
+                sender: username1,
+                receiver: username2,
+                text: 'message'
+            })
+            .end((err, response) => {
+                expect(err).toBe(null);
+                expect(response.statusCode).toBe(201);
+                done();
+            });
+    });
+
 });
-
-
-// Tests Teardown.
-afterAll(async () => {
-    // Closing the database connection.
-    await mongoose.connection.close();
-});
-
-
-// describe("Verifying chats can be retrieved: (GET /messages/public ) ", () => {
-//
-//     it("It should respond with an array of messages", async done => {
-//         const response = await request(app)
-//             .get("/messages/public");
-//
-//         await console.log(response.statusCode);
-//         expect(response.body.length).toBe(3);
-//         expect(response.statusCode).toBe(200);
-//
-//         done();
-//     });
-// });
-//
-// describe("Verifying chats can be created: (POST /messages/public ) ", () => {
-//
-//     it("It should respond with a newly-created message", async done => {
-//         const response = await request(app)
-//             .post("/messages/public")
-//             .send({
-//                 sender: "MikeSmith"
-//             })
-//             .send({
-//                 text: "How is it going bro?"
-//             })
-//             .set('Accept', 'application/json');
-//
-//         await console.log(response.statusCode);
-//         // expect(response.body.length).toBe(3);
-//         // expect(response.statusCode).toBe(200);
-//
-//         done();
-//     });
-// });

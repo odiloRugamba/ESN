@@ -24,7 +24,6 @@ class VolunteeringCallRepo {
 
 
     async getOpenVolunteeringCalls() {
-        console.log(Date.now);
         return await VolunteeringCall.find({endDate: {$gte: Date.now()}}).sort('-created_at')
     }
 

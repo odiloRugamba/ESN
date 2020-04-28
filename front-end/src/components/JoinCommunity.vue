@@ -7,32 +7,40 @@
     >
         <v-card-title class="headline">Join the Community</v-card-title>
         <v-card-text>
-            <v-form>
+            <v-form
+                v-model="valid"
+                ref="form"
+            >
                 <v-text-field
                     label="Username"
                     outlined
                     v-model="user.username"
+                    :rules="usernameRules"
+                    :error-messages="usernameErrorMessages"
+                    @change="usernameErrorMessages = []"
                 />
                 <v-text-field
                     label="Password"
                     outlined
                     type="password"
                     v-model="user.password"
+                    :rules="passwordRules"
                 />
             </v-form>
             <v-alert
                 dense
                 type="error"
-                v-model="invalidCredential"
+                v-model="showError"
             >
-                Invalid credentials
+                {{ errorMessage }}
             </v-alert>
         </v-card-text>
         <v-card-actions>
             <v-btn 
                 text 
                 color="accent"
-                @click="join"
+                :disabled="!valid"
+                @click="checkUsernameCriteria"
             >
                 Join
             </v-btn>
@@ -50,6 +58,7 @@
 
 import UserService from "@/services/userService";
 import ConfirmJoin from "@/components/ConfirmJoin";
+import axios from 'axios'
 
 export default {
     name: 'JoinCommunity',
@@ -62,60 +71,64 @@ export default {
                 username: '',
                 password: ''
             },
+            usernameRules: [
+                v => !!v || 'Username is required',
+                v => v.length >= 3 || 'Username must be at least 3 characters long'
+            ],
+            passwordRules: [
+                v => !!v || 'Password is required',
+                v => v.length >= 4 || 'Password must be at least 4 characters long'
+            ],
+            usernameErrorMessages: [],
+            valid: false,
             showConfirmDialog: false,
             loading: false,
-            invalidCredential: false,
+            showError: false,
+            errorMessage: ''
         }
     },
     methods: {
-        join() {
-            // TO-DO break down this function
+        checkUsernameCriteria() {
             const self = this;
             self.loading = true;
-            UserService.isUser(this.user).then( response => {
+            UserService.isUsernameAcceptable(this.user.username).then( response => {
+                self.loading = false;
                 if(response.status === 200) {
-                    // Username exists
-                    UserService.loginUser(self.user).then( response => {
-                        self.loading = false;
-                        if(response.status === 200) {
-                            self.$session.start();
-                            self.$session.set('username', self.user.username);
-                            self.$session.set('role', response.data.role);
-                            self.$session.set('jwt', response.data.token);
-                            //Vue.http.headers.common['Authorization'] = 'Bearer ' + response.data.token
-                            self.$router.push('/chat');
-                        }
-                        else {
-                            // Unknown response
-                        }
-                    }).catch(err => {
-                        self.loading = false;
-                        if(!err.response) {
-                            // Server down
-                        }
-                        else if(err.response.status === 401) {
-                            // Incorrect credentials
-                            self.invalidCredential = true;
-                        }
-                        else {
-                            // Other errors
-                        }
-                    })
-                }
-                else {
-                    self.loading = false;
+                    // Username exists, user tries to login
+                    self.join();
                 }
             }).catch(err => {
                 self.loading = false;
                 if(!err.response) {
-                    // Server down
+                }
+                else if(err.response.status === 406) {
+                    self.usernameErrorMessages = 'Username not allowed';
                 }
                 else if(err.response.status === 404) {
-                    // Username does not exists
-                    this.showConfirmDialog = true;
+                    // Username does not exists, new user
+                    self.showConfirmDialog = true;
                 }
-                else {
-                    // Other errors
+            })
+        },
+        join() {
+            const self = this;
+            self.loading = true;
+            UserService.loginUser(self.user).then( response => {
+                self.loading = false;
+                if(response.status === 200) {
+                    self.saveSession(response.data.user, response.data.token);
+                }
+            }).catch(err => {
+                self.loading = false;
+                if(err.response && err.response.status === 401) {
+                    // Incorrect credentials
+                    self.errorMessage = 'Invalid credentials';
+                    self.showError = true;
+                }
+                else if(err.response && err.response.status === 403) {
+                    // Incorrect credentials
+                    self.errorMessage = 'Account deactivated';
+                    self.showError = true;
                 }
             })
         },
@@ -129,16 +142,19 @@ export default {
             UserService.registeruser(this.user).then(response => {
                 self.loading = false;
                 if(response.status === 201) {
-                    self.$session.start();
-                    self.$session.set('username', self.user.username);
-                    self.$session.set('role',  response.data.role);
-                    self.$session.set('jwt', response.data.token);
-                    //Vue.http.headers.common['Authorization'] = 'Bearer ' + response.data.token
-                    self.$router.push('/welcome');
+                    self.saveSession(response.data.user, response.data.token);
                 }
             }).catch(err => {
                 self.loading = false;
             })
+        },
+        saveSession(user, token) {
+            this.$session.start();
+            this.$session.set('username', user.username);
+            this.$session.set('user', user);
+            this.$session.set('jwt', token);
+            axios.defaults.headers.common['Authorization'] = 'Bearer ' + token;
+            this.$router.push('/welcome');
         }
     }
 }

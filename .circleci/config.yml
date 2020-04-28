@@ -41,7 +41,7 @@ jobs:
             - run: git config user.email "bomar@andrew.cmu.edu"
             - run: git config user.name "Bassam Omar"
             - run: git add -f server/dist && git commit -m "include dist folder"
-            - run: git push -f https://heroku:${HEROKU_API_KEY}@git.heroku.com/esn-volunteers.git odilo:master
+            - run: git push -f https://heroku:${HEROKU_API_KEY}@git.heroku.com/${HEROKU_APP_NAME}.git master:master
 
 workflows:
   build-test-deploy:

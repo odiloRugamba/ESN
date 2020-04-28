@@ -18,13 +18,6 @@ const chatSchema = new mongoose.Schema({
 
 class Chat {
 
-    isPrivate() {
-        return this.receiver === null;
-    }
-
-    isPublic() {
-        return this.receiver !== null;
-    }
 }
 
 chatSchema.loadClass(Chat);

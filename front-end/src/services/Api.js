@@ -6,7 +6,7 @@ const env = process.env.NODE_ENV || 'dev';
 let HOST = '';
 
 if(env === 'production') {
-  HOST = 'https://esn-volunteers.herokuapp.com/'
+  HOST = '[HOST link here]'
 }
 else {
   HOST = 'http://localhost:8081' 

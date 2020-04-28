@@ -1,6 +1,6 @@
-const UserRepo = require("../repo/UserRepo");
-const ChatRepo = require("../repo/ChatRepo");
-const AnnoncementRepo = require("../repo/AnnouncementRepo");
+const Search = require('./Search/Search');
+const SearchStrategyFactory = require('./Search/SearchStrategyFactory');
+const StopWordRule = require('../utils/StopWordRule');
 
 /**
   * @swagger
@@ -30,35 +30,22 @@ const AnnoncementRepo = require("../repo/AnnouncementRepo");
   */
 exports.searchByCriteria = async (req, res) => {
 
-    if (req.body.context === "users") {
-        const users = await searchUserByUsername(req.body.terms);
-        return res.json(users);
-
+    const terms = StopWordRule.removeStopWords(req.body.terms);
+    let searchData = {
+        context: req.body.context,
+        terms: terms,
     }
-    else if (req.body.context === "public-messages") {
-        return res.json(await searchPublicChatsByText(req.body.terms));
+    if(req.body.extras) {
+        searchData.sender = req.body.extras.username1;
+        searchData.receiver = req.body.extras.username2;
     }
-    else if (req.body.context === "private-messages") {
-        return res.json(await searchPrivateChatsByText(req.body.terms, req.body.extras.username1, req.body.extras.username2));
-    }
-    else if (req.body.context === "search-announcements") {
-        return res.json(await searchAnnouncementsByText(req.body.terms));
-    }
+
+    let search = new Search();
+    let searchStrategy = SearchStrategyFactory.getStrategy(searchData);
+    search.setStrategy(searchStrategy);
+
+    search.doSearch(searchData.terms).then(results => {
+        res.json(results);
+    });
 }
 
-searchUserByUsername = async (query) => {
-    const users = await UserRepo.searchUserByUsername(query);
-    return users;
-}
-
-searchPublicChatsByText = async (query) => {
-    return await ChatRepo.searchPublicChatByText(query);
-}
-
-searchPrivateChatsByText = async (query, username1, username2) => {
-    return await ChatRepo.searchPrivateChatByText(query, username1, username2);
-}
-
-searchAnnouncementsByText = async (query) => {
-    return await AnnoncementRepo.searchAnnouncementsByText(query);
-}

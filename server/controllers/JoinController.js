@@ -1,6 +1,7 @@
 const UserRepo = require("../repo/UserRepo");
 const jwt = require("jsonwebtoken");
 const config = require("../config/main");
+const ReservedUsername = require("../utils/ReservedUsername");
 
 
 /**
@@ -37,12 +38,18 @@ exports.validateCredentials = async (req, res) => {
   );
 
   if (match) {
-    // create a token
-    const token = jwt.sign(user.getJSON(), config.secret, {
-      expiresIn: 10000 // Expires in one week
-    });
-    console.log("role::"+user.role);
-    return res.json({ success: true, status: user.current_status.text,role: user.role, token: token });
+    if(!user.active) {
+      return res.sendStatus(403);
+    }
+    else {
+
+      // create a token
+      const token = jwt.sign(user.getJSON(), config.secret, {
+        expiresIn: 10000 // Expires in one week
+      });
+
+      return res.json({ user: user.getJSON(), token: token });
+    }
   } else {
     return res.sendStatus(401);
   }
@@ -70,33 +77,37 @@ exports.listUsers = async (req, res) => {
 
 /**
  * @swagger
- * /username:
- *  post:
+ * /users/{username}:
+ *  head:
  *    description: Check if the user with the username exists
  *    consumes:
  *        - application/json
  *    parameters:
- *      - in: body
- *        name: user
+ *      - in: path
+ *        name: username
  *        description: The citizen username
- *        schema:
- *              type: object
- *              required:
- *                   - username
- *              properties:
- *                  username:
- *                    type: string
+ *        type: string
+ *        required: true
  *    responses:
  *      '200':
- *        description: A successful response
+ *        description: Username is taken
+ *      '404':
+ *        description: Username is available
+ *      '406':
+ *        description: Username is not acceptable
  */
 exports.findUser = async (req, res) => {
-  const users = await UserRepo.findUser(req.body.username);
-  if (users) {
-    res.sendStatus(200);
-  } else {
-    res.sendStatus(404);
-    res.sendStatus(404);
+  if(ReservedUsername.includes(req.params.username)) {
+    res.sendStatus(406);
+  }
+  else {
+    const users = await UserRepo.findUser(req.params.username);
+    if (users) {
+      res.sendStatus(200);
+    } 
+    else {
+      res.sendStatus(404);
+    }
   }
 };
 
@@ -128,17 +139,19 @@ exports.findUser = async (req, res) => {
  */
 exports.join = async (req, res) => {
   if (!req.body.username || !req.body.password) {
-    Console.log("clicked to join");
-    res.json({ success: false, message: "Username and Password required" });
+    res.sendStatus(400);
   } else {
     const saved = await UserRepo.saveUser(req.body.username, req.body.password);
     if (!saved) {
-      return res.json({
-        success: false,
-        message: "username address already exists"
-      });
+      // 409: conflict
+      return res.sendStatus(409);
     }
-    res.json({ success: true, message: "Successfully created new user!" });
+    const user = await UserRepo.findUser(req.body.username);
+    const token = jwt.sign(user.getJSON(), config.secret, {
+      expiresIn: 10000 // Expires in one week
+    });
+
+    return res.status(201).json({ user: user.getJSON(), token: token });
   }
 };
 

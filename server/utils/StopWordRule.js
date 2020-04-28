@@ -25,24 +25,18 @@ class StopWordRule {
         Method removes specific stop words from the user-provided search terms.
      */
 
-    async removeStopWords(searchString){
-        searchString = "That is all it means to me? No I don't think so!";
+    removeStopWords(searchString) {
 
-        let splitWords = searchString.split(" ");
+        let filteredSearchString = searchString;
 
-        splitWords.forEach(
-            function(element, index){
-                if (this.stopWords.includes(element)){
-                    console.log("Element exists: ", element, index);
-                    splitWords.splice(index, 1)
-                }
+        this.stopWords.forEach(
+            stopWord => {
+                filteredSearchString = filteredSearchString.replace(new RegExp('\\b'+stopWord+'\\b', 'ig'), '');
             }
         );
 
-        let filteredSearchString = splitWords.join(" ");
-        console.log(filteredSearchString);
-
-        return filteredSearchString;
+        // remove extra spaces
+        return filteredSearchString.replace(/ +/, ' ');
     }
 }
 

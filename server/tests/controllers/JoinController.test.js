@@ -1,150 +1,133 @@
-const mongoose = require('mongoose');
-const testDatabase = require("../../config/main").test_db;
+const dbHandler = require('../db-handler');
 
 // const app = require('../../server');
 const request = require('supertest'); // Endpoint testing package.
 
-const User = require("../../models/User");
+const UserRepo = require("../../repo/UserRepo");
 
-it('Testing to see if Jest works', () => {
-    expect(1).toBe(1);
+const app = require('../../app')
+
+beforeAll(async () => await dbHandler.connect());
+
+afterEach(async () => await dbHandler.clearDatabase());
+
+afterAll(async () => await dbHandler.closeDatabase());
+
+
+describe("Verifying login of a user: (GET /login ) ", () => {
+
+    it("It should respond with a user, with a valid token", async done => {
+        await UserRepo.saveUser("MikeSmith", "password");
+
+        const response = await request(app)
+            .post("/login")
+            .send({
+                username: "MikeSmith",
+                password: "password"
+            });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body).toHaveProperty("user");
+        expect(response.body.user).toHaveProperty("username");
+        expect(response.body.user.username).toBe("MikeSmith");
+        expect(response.body).toHaveProperty("token");
+
+        done();
+    });
+
+    it("It should respond with unauthorized", async done => {
+        await UserRepo.saveUser("MikeSmith", "password");
+
+        const response = await request(app)
+            .post("/login")
+            .send({
+                username: "MikeSmith",
+                password: "wrongPassword"
+            });
+
+        expect(response.statusCode).toBe(401);
+
+        done();
+    });
+});
+
+describe("Verifying retrieval of users: (GET /users ) ", () => {
+
+    const username = "MikeSmith";
+    let token = null;
+
+    beforeEach(async () => {
+        await UserRepo.saveUser(username, "password");
+        const response = await request(app)
+            .post('/login')
+            .send({
+                username: username,
+                password: "password"
+            });
+        expect(response.statusCode).toBe(200);
+        expect(response.body).toHaveProperty("token");
+        token = response.body.token;
+    });
+
+    it("It should respond with an array of users", async done => {
+        await UserRepo.saveUser("johnx", "password");
+        await UserRepo.saveUser("johny", "password");
+
+        request(app)
+            .get("/users")
+            .set('Authorization', 'Bearer '+token)
+            .end((err, response) => {
+                expect(err).toBe(null);
+                expect(response.statusCode).toBe(200);
+                expect(response.body.length).toBe(3);
+                done();
+            })
+    });
 });
 
 
-// Tests setup.
-// beforeAll(async () => {
-//     // Connecting to the database.
-//     await mongoose.connect(testDatabase, { useNewUrlParser: true,
-//         useUnifiedTopology: true});
-// });
+describe("Verifying registration: (POST /register ) ", () => {
+    it("Verifying correct registration", async (done) => {
+        request(app)
+            .post('/register')
+            .send({username: 'johnx', password: 'password'})
+            .expect(201)
+            .then(response => {
+                expect('user' in response.body).toBe(true);
+                expect(response.body.user.username).toBe('johnx');
+                expect('token' in response.body).toBe(true);
+                done();
+            })
+    });
 
-// Before each tests.
-// beforeEach(async () => {
-//
-//     // Adding users to test database.
-//     const user1 = new User({ username: "MikeJones", password: "mikejones" });
-//     await user1.save();
-//
-//     const user2 = new User({ username: "JimJones", password: "jimjones" });
-//     await user2.save();
-//
-//     const user3 = new User({ username: "Kimkim", password: "kimkim" });
-//     await user3.save();
-// });
+    it("Verifying missing username", async (done) => {
+        request(app)
+            .post('/register')
+            .send({password: 'password'})
+            .expect(400, done)
+    });
 
-// After each test.
-// afterEach(async () => {
-//     // Removing the users.
-//     await User.remove({});
-// });
+    it("Verifying existing username", async (done) => {
+        await UserRepo.saveUser("johnx", "password");
+        request(app)
+            .post('/register')
+            .send({username: 'johnx', password: 'password'})
+            .expect(409, done)
+    });
 
-// Tests Teardown.
-// afterAll(async () => {
-//     // Closing the database connection.
-//     await mongoose.connection.close();
-// });
+});
 
-// describe("Verifying creation of a user with a token: (GET /login ) ", () => {
-//
-//     it("It should respond with a user, with a valid token", async done => {
-//
-//         const response = await request(app)
-//             .get("/login")
-//             .send({
-//                 username: "MikeSmith"
-//             })
-//             .send({
-//                 password: "password"
-//             })
-//             .set('Accept', 'application/json');
-//
-//         expect(response.body).toBe(3);
-//         expect(response.statusCode).toBe(200);
-//         // expect(response.body[0]).toHaveProperty("username");
-//
-//         done();
-//     });
-// });
+describe("Verifying check of username: (HEAD /users/:username ) ", () => {
+    it("It should return 404", async (done) => {
+        request(app)
+            .head('/users/johnx')
+            .expect(404, done)
+    });
 
-// describe("Verifying retrieval of users: (GET /users ) ", () => {
-//
-//     it("It should respond with an array of users", async done => {
-//         const response = await request(app)
-//             .get("/users");
-//
-//         expect(response.body.length).toBe(3);
-//         expect(response.statusCode).toBe(200);
-//         // expect(response.body[0]).toHaveProperty("username");
-//
-//         done();
-//     });
-// });
-//
-// describe("Verifying creation of users: (POST /users ) ", () => {
-//
-//     it("It should respond with a newly created user", async done => {
-//         const newUser = await request(app)
-//             .post("/users")
-//             .send({
-//                 username: "MikeSmith"
-//             })
-//             .send({
-//                 password: "password"
-//             })
-//             .set('Accept', 'application/json');
-
-        // expect(newUser.body.username).toBe("MikeSmith");
-        // expect(newUser.statusCode).toBe(200);
-
-        // // Number of users should now be 4.
-        // const response = await request(app)
-        //     .get("/users");
-        // expect(response.body.length).toBe(4);
-
-//         done();
-//     });
-// });
-
-
-// // it("Verify that a single user can be retrieved", async (done) => {
-// //     const res = await request(app).get('/users/{username}');
-// //     expect(res.statusCode).toBe(200);
-// //     done();
-// // });
-//
-// // it("Verifying that a registered user logs in", async (done) => {
-// //     const res = await request(app).post('/login');
-// //     expect(res.statusCode).toBe(200);
-// //     console.log(res);
-// //     done();
-// // });
-
-
-/*
-it(" asynchronouse code", async (done) => {
-    const user = await request(app).get('/login').expect(404);
-    expect(user.statusCode).toBe(404);
-    done();
-})
-
-
-
-
-    it(" asynchronouse code", async (done) => {
-        const req = await request(app).get('/login').expect(404);
-        //expect(user.statusCode).toBe(404);
-        //console.log(req);
-        done();
-    })
-
-
-    it(" post login ", async (done) => {
-        const req = await request(app).post('/login')
-            .send("username=john")
-            .send("password=johndoe")
-            .set('Accept', 'application/json')
-            .expect(200);
-        //console.log(req);
-        done();
-    })
-    */
+    it("It should return 200", async (done) => {
+        await UserRepo.saveUser("johnx", "password");
+        request(app)
+            .head('/users/johnx')
+            .expect(200, done)
+    });
+});

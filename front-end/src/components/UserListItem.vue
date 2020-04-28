@@ -1,7 +1,7 @@
 <template>
     <v-list-item @click="select">
         <v-list-item-avatar>
-            <v-icon>mdi-account-circle</v-icon>
+            <v-icon large>mdi-account-circle</v-icon>
         </v-list-item-avatar>
 
         <v-list-item-content>

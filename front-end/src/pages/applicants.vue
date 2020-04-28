@@ -4,11 +4,10 @@
       :applics="applicants"
       :loading="loading"
     />
-    <v-text v-else
-
-    >
-      <p class="text-center">No applications avilable</p>
-    </v-text>
+    <p 
+      v-else
+      class="text-center"
+    >No applications avilable</p>
   </v-container>
 </template>
 

@@ -29,12 +29,20 @@ class ChatRepo {
     }
 
     async listPublicMessages() {
-        return await Chat
-            .find({ messageType: "public" })
+        const activeUsers = await UserRepo.getActiveUsername();
+        return await Chat.find({
+            messageType: "public",
+            sender: {
+                "$in": activeUsers
+            }
+        });
     }
 
     async getLatestMessages(username1, username2) {
-
+        const activeUsers = await UserRepo.getActiveUsername();
+        if(activeUsers.indexOf(username1) === -1 || activeUsers.indexOf(username2) === -1) {
+            return [];
+        }
         return await Chat.find({
             $or: [
                 { $and: [{ sender: username1 }, { receiver: username2 }, { messageType: "private" }] },
@@ -43,12 +51,6 @@ class ChatRepo {
         }).sort({ created_at: 1 })
         //Where usernames are this order based on timestamp, limit 10 where label is private
     }
-
-
-    async getAllLatestMessages() {
-        return await Chat.find({ messageType: "private" }).sort({ created_at: -1 }) //Where usernames are this order based on timestamp, limit 10 where label is private
-    }
-
 
 
     async searchPublicChatByText(query) {
@@ -80,42 +82,6 @@ class ChatRepo {
         }).sort({ created_at: 1 })
     }
 
-
-    /*
-        Method returns search results of chats matching the provided search term, and search criteria (username or status)
-     */
-    async getMessagesByCriteria(criteria, term){
-
-        if (criteria === "public"){
-            return await Chat
-                .find({ text: { $regex: term, $options: "i" }, messageType: "public" })
-                .then(chats => {
-                    console.log("Returned chats: \n");
-
-                    for (let chat of chats){
-                        console.log(chat);
-                    }
-                    return chats;
-                })
-                .catch(err => {
-                    console.log(err);
-                })
-        } else {
-            return await Chat
-                .find({ text: { $regex: term, $options: "i"}, messageType: "private"})
-                .then(chats => {
-                    console.log("Returned chats: \n");
-
-                    for (let chat of chats){
-                        console.log(chat);
-                    }
-                    return chats;
-                })
-                .catch(err => {
-                    console.log(err);
-                })
-        }
-    }
 
 }
 

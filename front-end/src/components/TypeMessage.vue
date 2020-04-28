@@ -1,7 +1,7 @@
 <template>
     <v-footer app inset>
         <v-row>
-          <v-col cols="11">
+          <v-col :cols="textFieldCols">
             <v-textarea
               rows="1"
               no-resize
@@ -13,7 +13,7 @@
               v-model="message"
             ></v-textarea>
           </v-col>
-          <v-col cols="1">
+          <v-col :cols="buttonCols">
             <v-btn 
               dark
               fab
@@ -42,6 +42,14 @@ export default {
             message: '',
         }
     },
+    computed: {
+        textFieldCols: function() {
+            return this.$vuetify.breakpoint.smAndDown ? 10 : 11;
+        },
+        buttonCols: function() {
+            return this.$vuetify.breakpoint.smAndDown ? 2 : 1;
+        }
+    },
     methods: {
         send() {
             let result;
@@ -52,7 +60,7 @@ export default {
                 result = MessageService.sendPublicMessage(this.$session.get('username'), this.message);
             }
             else if(this.type === 'private') {
-                result = MessageService.sendPrivateMessage(this.$session.get('username'), this.receiver.username, this.message);
+                result = MessageService.sendPrivateMessage(this.$session.get('username'), this.receiver, this.message);
             }
             else if(this.type === 'announcement') {
                 result = AnnouncementemeService.sendAnnouncement(this.$session.get('username'), this.message);

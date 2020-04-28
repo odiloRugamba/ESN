@@ -1,7 +1,7 @@
 var mongoose = require('mongoose');
 
 module.exports.connect = function() {
-	mongoose.connect('[mongod database URL with credentials]',
+	mongoose.connect('database link',
 		{
 			useNewUrlParser: true,
 			useUnifiedTopology: true

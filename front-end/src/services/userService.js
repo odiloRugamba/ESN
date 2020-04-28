@@ -3,19 +3,37 @@ import Api from '@/services/Api'
 
 export default {
 
-  registeruser(user) {
+    registeruser(user) {
      return Api().post('/register', user)
-  },
+    },
 
-  loginUser(user) {
+    loginUser(user) {
      return Api().post('/login', user)
-  },
+    },
 
-  isUser(username) {
-     return Api().post('/username', username)
-  },
+    updateStatus(username, status) {
+     return Api().put('/users/'+username+'/status', { status: status })
+    },
 
-  listUsers() {
+    isUsernameAcceptable(username) {
+     return Api().head('/users/'+username)
+    },
+
+    listUsers() {
     return Api().get('/users')
-  }
+    },
+
+    retrieveUser(username) {
+
+        return Api().get('/users/' + username);
+    },
+
+    updateUserProfile(user) {
+
+        return Api().post('/updateuser', user);
+    },
+
+    getAllUsers() {
+        return Api().get('/allusers');
+    }
 }

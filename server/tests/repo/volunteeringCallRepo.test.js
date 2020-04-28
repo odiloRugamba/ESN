@@ -58,7 +58,7 @@ describe("Test the VolunteeringCallRepo", () => {
             category: "drivers",
             tasks: "driving drugs to hospitals",
             author: "odilo",
-            endDate: "4/20/2020"
+            endDate: "4/20/2021"
         }
         await VolunteeringCallRepo.saveNewVolunteeringCall(call);
         //create a call

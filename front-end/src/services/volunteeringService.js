@@ -31,7 +31,7 @@ export default {
             application
         })
     },
-
+ 
     declineApplication(application) {
         return Api().post('/decline-application', {
             application

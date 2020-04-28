@@ -1,7 +1,11 @@
-
 <template>
-  <v-row justify="center">
-    <v-dialog v-model="dialog" persistent max-width="600px">
+    <v-dialog 
+      v-bind:value="value" 
+      v-on:input="$emit('input', $event.target.value)"
+      :loading="loading"
+      persistent 
+      max-width="600px"
+    >
       <template v-slot:activator="{ on }">
         <slot v-bind:on="on"></slot>
       </template>
@@ -15,7 +19,7 @@
               <v-col cols="12" sm="12">
                 <v-select
                   v-model="status"
-                  :items="['Okay', 'Help', 'Emergency']"
+                  :items="statuses"
                   label="Status*"
                   required
                 ></v-select>
@@ -26,41 +30,51 @@
         </v-card-text>
         <v-card-actions>
           <v-spacer></v-spacer>
-          <v-btn color="blue darken-1" text @click="dialog = false">Close</v-btn>
+          <v-btn color="blue darken-1" text @click="$emit('input', false)">Close</v-btn>
           <v-btn color="blue darken-1" text @click="submitStatus">Save changes</v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
-  </v-row>
 </template>
 <script>
-import Api from "@/services/Api";
+import UserService from "@/services/userService";
   export default {
     name: 'updateStatus',
+    props: [ 'value' ],
     data(){
         return {
-            dialog: false,
+            loading: false,
             status: '',
-            activeuser: this.$session.get('username'),
+            statuses: [
+              {
+                text: 'Okay',
+                value: 'ok'
+              },
+              {
+                text: 'Help',
+                value: 'help'
+              },
+              {
+                text: 'Emergency',
+                value: 'emergency'
+              },
+            ]
         }
     },
-    created(){
-       
-    },
     methods: {
-        
         submitStatus(e){
-            e.preventDefault();
-            this.$session.start();
-            this.$session.set("userStatus", this.status),
-            Api().post("/update-status", { username: this.$session.get('username'), userStatus: this.status })
+            this.loading = true;
+            UserService.updateStatus(this.$session.get('user').username, this.status)
             .then(res => {
-                //hide the dialog and update status on the scrin
-                //this.$router.push("/chat");
-                this.dialog = false;
+                //hide the dialog and update status on the screen
+                this.loading = false;
+                let user = this.$session.get('user')
+                user.status.text = this.status;
+                this.$session.set('user', user);
+                this.$emit('input', false);
             })
             .catch(err => {
-                console.log(err);
+              this.loading = false;
            });
         }
     }

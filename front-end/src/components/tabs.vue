@@ -21,12 +21,6 @@
     >
       Announcement
     </v-tab>
-    <v-tab
-      to="/volunteering"
-      exact
-    >
-      Volunteering
-    </v-tab>
   </v-tabs>
 </template>
 
